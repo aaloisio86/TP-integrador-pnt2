@@ -41,22 +41,28 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const usuario = ref('')
 const password = ref('')
 const error = ref('')
+const router = useRouter()
 
 function login() {
   const cuentas = JSON.parse(localStorage.getItem('cuentas')) || []
   const user = cuentas.find(c => c.usuario === usuario.value && c.password === password.value)
+
   if (user) {
-    alert(`Bienvenido ${user.usuario}!`)
     error.value = ''
+    // guardamos usuario en localStorage para usar en la próxima pantalla
+    localStorage.setItem('user', JSON.stringify(user))
+    router.push('/seleccion-tareas')
   } else {
     error.value = 'Usuario o contraseña incorrectos.'
   }
 }
 </script>
+
 
 <style scoped>
 .auth-card {
