@@ -37,7 +37,13 @@
           />
         </div>
   
-        <button type="submit" class="btn btn-success w-100 mb-3">Registrarme</button>
+        <button 
+          type="submit" 
+          class="btn btn-success w-100 mb-3"
+          :disabled="!usuario || !email || !password || password.length < 6"
+        >
+        Registrarme
+        </button>
   
         <p class="text-center">
           ¿Ya tenés cuenta?
@@ -53,49 +59,51 @@
   </template>
   
   <script setup>
-    import { ref } from 'vue'
-    import axios from 'axios'
+import { ref, computed } from 'vue'
+import axios from 'axios'
 
-    const usuario = ref('')
-    const email = ref('')
-    const password = ref('')
-    const error = ref('')
-    const success = ref('')
+const usuario = ref('')
+const email = ref('')
+const password = ref('')
+const error = ref('')
+const success = ref('')
 
-    const API_URL = 'https://6911e74852a60f10c81fc27b.mockapi.io/usuarios' // 👈 reemplazá esto
+const API_URL = 'https://6911e74852a60f10c81fc27b.mockapi.io/usuarios'
 
-    async function registrar() {
-      error.value = ''
-      success.value = ''
+// Computed property para habilitar/deshabilitar el botón
+const isFormValid = computed(() => {
+  return usuario.value && email.value && password.value.length >= 6
+})
 
-      try {
-        // Traer usuarios actuales
-        const { data: usuarios } = await axios.get(API_URL)
+async function registrar() {
+  error.value = ''
+  success.value = ''
 
-        // Verificar si ya existe el mail
-        const existeMail = usuarios.some(u => u.email === email.value)
-        if (existeMail) {
-          error.value = 'Ya existe una cuenta registrada con este correo.'
-          return
-      }
+  try {
+    const { data: usuarios } = await axios.get(API_URL)
 
-        // Crear nuevo usuario
-        await axios.post(API_URL, {
-          usuario: usuario.value,
-          email: email.value,
-          password: password.value
-        })
-
-        success.value = 'Cuenta creada con éxito. Ya podés iniciar sesión.'
-        usuario.value = ''
-        email.value = ''
-        password.value = ''
-      } catch (err) {
-        console.error(err)
-        error.value = 'Hubo un error al registrar la cuenta.'
-      }
+    const existeMail = usuarios.some(u => u.email === email.value)
+    if (existeMail) {
+      error.value = 'Ya existe una cuenta registrada con este correo.'
+      return
     }
-  </script>
+
+    await axios.post(API_URL, {
+      usuario: usuario.value,
+      email: email.value,
+      password: password.value
+    })
+
+    success.value = 'Cuenta creada con éxito. Ya podés iniciar sesión.'
+    usuario.value = ''
+    email.value = ''
+    password.value = ''
+  } catch (err) {
+    console.error(err)
+    error.value = 'Hubo un error al registrar la cuenta.'
+  }
+}
+</script>
   
   <style scoped>
   .auth-card {
