@@ -25,7 +25,7 @@
         />
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 mb-3">Ingresar</button>
+      <button type="submit" class="btn btn-primary w-100 mb-3" :disabled="!canLogin">Ingresar</button>
 
       <p class="text-center">
         ¿No tenés cuenta?
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -48,24 +48,19 @@ const usuario = ref('')
 const password = ref('')
 const error = ref('')
 const router = useRouter()
-
-// 👇 misma URL que usás en el registro
 const API_URL = 'https://6911e74852a60f10c81fc27b.mockapi.io/usuarios'
+
+// computed que valida inputs
+const canLogin = computed(() => {
+  return usuario.value.trim().length > 0 && password.value.length >= 6
+})
 
 async function login() {
   error.value = ''
   try {
-    // Traer todos los usuarios desde MockAPI
     const { data: usuarios } = await axios.get(API_URL)
-
-    // Buscar si coincide usuario + password
-    const user = usuarios.find(
-      u => u.usuario === usuario.value && u.password === password.value
-    )
-
+    const user = usuarios.find(u => u.usuario === usuario.value && u.password === password.value)
     if (user) {
-      error.value = ''
-      // Guardamos sesión local
       localStorage.setItem('user', JSON.stringify(user))
       router.push('/seleccion-tareas')
     } else {
@@ -77,8 +72,6 @@ async function login() {
   }
 }
 </script>
-
-
 
 <style scoped>
 .auth-card {
