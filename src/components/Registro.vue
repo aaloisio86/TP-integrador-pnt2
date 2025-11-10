@@ -53,39 +53,48 @@
   </template>
   
   <script setup>
-  import { ref } from 'vue'
-  
-  const usuario = ref('')
-  const email = ref('')
-  const password = ref('')
-  const error = ref('')
-  const success = ref('')
-  
-  function registrar() {
-    const cuentas = JSON.parse(localStorage.getItem('cuentas')) || []
-  
-    const existeMail = cuentas.some(c => c.email === email.value)
-    if (existeMail) {
-      error.value = 'Ya existe una cuenta registrada con este correo.'
+    import { ref } from 'vue'
+    import axios from 'axios'
+
+    const usuario = ref('')
+    const email = ref('')
+    const password = ref('')
+    const error = ref('')
+    const success = ref('')
+
+    const API_URL = 'https://6911e74852a60f10c81fc27b.mockapi.io/usuarios' // 👈 reemplazá esto
+
+    async function registrar() {
+      error.value = ''
       success.value = ''
-      return
+
+      try {
+        // Traer usuarios actuales
+        const { data: usuarios } = await axios.get(API_URL)
+
+        // Verificar si ya existe el mail
+        const existeMail = usuarios.some(u => u.email === email.value)
+        if (existeMail) {
+          error.value = 'Ya existe una cuenta registrada con este correo.'
+          return
+      }
+
+        // Crear nuevo usuario
+        await axios.post(API_URL, {
+          usuario: usuario.value,
+          email: email.value,
+          password: password.value
+        })
+
+        success.value = 'Cuenta creada con éxito. Ya podés iniciar sesión.'
+        usuario.value = ''
+        email.value = ''
+        password.value = ''
+      } catch (err) {
+        console.error(err)
+        error.value = 'Hubo un error al registrar la cuenta.'
+      }
     }
-  
-    const nuevaCuenta = {
-      usuario: usuario.value,
-      email: email.value,
-      password: password.value
-    }
-  
-    cuentas.push(nuevaCuenta)
-    localStorage.setItem('cuentas', JSON.stringify(cuentas))
-  
-    success.value = 'Cuenta creada con éxito. Ya podés iniciar sesión.'
-    error.value = ''
-    usuario.value = ''
-    email.value = ''
-    password.value = ''
-  }
   </script>
   
   <style scoped>

@@ -42,26 +42,42 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const usuario = ref('')
 const password = ref('')
 const error = ref('')
 const router = useRouter()
 
-function login() {
-  const cuentas = JSON.parse(localStorage.getItem('cuentas')) || []
-  const user = cuentas.find(c => c.usuario === usuario.value && c.password === password.value)
+// 👇 misma URL que usás en el registro
+const API_URL = 'https://6911e74852a60f10c81fc27b.mockapi.io/usuarios'
 
-  if (user) {
-    error.value = ''
-    // guardamos usuario en localStorage para usar en la próxima pantalla
-    localStorage.setItem('user', JSON.stringify(user))
-    router.push('/seleccion-tareas')
-  } else {
-    error.value = 'Usuario o contraseña incorrectos.'
+async function login() {
+  error.value = ''
+  try {
+    // Traer todos los usuarios desde MockAPI
+    const { data: usuarios } = await axios.get(API_URL)
+
+    // Buscar si coincide usuario + password
+    const user = usuarios.find(
+      u => u.usuario === usuario.value && u.password === password.value
+    )
+
+    if (user) {
+      error.value = ''
+      // Guardamos sesión local
+      localStorage.setItem('user', JSON.stringify(user))
+      router.push('/seleccion-tareas')
+    } else {
+      error.value = 'Usuario o contraseña incorrectos.'
+    }
+  } catch (err) {
+    console.error(err)
+    error.value = 'Error al conectar con el servidor.'
   }
 }
 </script>
+
 
 
 <style scoped>
